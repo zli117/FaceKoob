@@ -3,18 +3,16 @@
 import logging
 import os
 import random
+import sys
+import time
 
 import torch
 import torch.multiprocessing as mp
+from torch import optim
 
 import cv2
 
-
-def loss_fn(anchor_emb, positive_emb, negative_emb, alpha=0.2):
-    batch_size = anchor_emb.shape[0]
-    loss = (torch.norm(anchor_emb - positive_emb)**2 -
-            torch.norm(anchor_emb - negative_emb)**2) / batch_size + alpha
-    return loss
+from model import Embedder
 
 
 class DataGenerator:
@@ -96,9 +94,9 @@ class LoadingWorker(mp.Process):
 
     def run(self):
         while not self.exit.is_set():
-            self.logger.info('loading...')
             batch = self.generator.__next__()
             self.queue.put(batch)
+        time.sleep(2)
 
     def terminate(self):
         self.logger.info('Shutting down loader')
@@ -106,13 +104,54 @@ class LoadingWorker(mp.Process):
         while not self.queue.empty():
             self.queue.get()
 
-import time
 
-queue = mp.Queue(10)
-process = LoadingWorker('data/processed', 10, queue)
-process.start()
-time.sleep(5)
-print(queue.qsize())
-print(queue.get().shape)
-process.terminate()
-process.join()
+def loss_fn(batch_size, embeddings, alpha=0.2):
+    anchor = embeddings[:batch_size]
+    positive = embeddings[batch_size:2 * batch_size]
+    negative = embeddings[2 * batch_size:]
+    loss = (
+        (torch.norm(anchor - positive)**2 - torch.norm(anchor - negative)**2) /
+        batch_size + alpha)
+    return loss
+
+
+def train(data_dir,
+          batch_size,
+          total_iter,
+          kernel_sizes,
+          logger,
+          model_save_path,
+          input_shape=(72, 72),
+          cuda=True):
+    queue = mp.Queue(10)
+    process = LoadingWorker(data_dir, batch_size, queue)
+    process.start()
+    model = Embedder(input_shape, kernel_sizes)
+    if cuda:
+        model = model.cuda()
+    optimizer = optim.Adam(model.parameters(), lr=5e-6)
+    for i in range(total_iter):
+        optimizer.zero_grad()
+        images = queue.get()
+        if cuda:
+            images = images.cuda()
+        embeddings = model(images)
+        loss = loss_fn(batch_size, embeddings)
+        loss.backward()
+        optimizer.step()
+        if i % 50 == 0:
+            logger.info('loss at step %04d is: %f' % (i, loss))
+    process.terminate()
+    process.join()
+    torch.save(model.cpu().state_dict(), model_save_path)
+
+
+if __name__ == '__main__':
+    DATA_DIR = 'data/processed'
+    BATCH_SIZE = 4
+    TOTAL_ITER = 200
+    KERNEL_SIZES = [5, 3, 5, 3, 3, 3, 3, 3]
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    train(DATA_DIR, BATCH_SIZE, TOTAL_ITER, KERNEL_SIZES, logger,
+          'model-weights')

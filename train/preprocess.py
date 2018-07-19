@@ -4,7 +4,6 @@ import pickle
 import argparse
 import glob
 import logging
-import multiprocessing as mp
 import os
 import sys
 
@@ -133,9 +132,7 @@ def preprocess_dataset(input_dir,
                        out_dim,
                        face_predictor_path,
                        logger,
-                       processes=mp.cpu_count(),
                        landmark_indices=INNER_EYES_AND_BOTTOM_LIP):
-    logger.info('Running on %d processes' % processes)
     if not os.path.exists(input_dir):
         logger.error('Data dir %s doesn\'t exist' % input_dir)
         return
