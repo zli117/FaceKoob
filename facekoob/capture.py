@@ -69,4 +69,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     capture_images(args.output_dir, args.identity, args.face_predictor,
-                   args.output_dim, logger)
+                   args.output_dim, args.show, logger)
