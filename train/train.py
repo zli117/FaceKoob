@@ -6,12 +6,12 @@ import random
 import sys
 import time
 
+import numpy as np
 import torch
 import torch.multiprocessing as mp
 from torch import optim
 
 import cv2
-
 from model import Embedder
 
 
@@ -55,17 +55,19 @@ class DataGenerator:
 
             if len(self.face_images[self.person_idx]) > 1:
                 anchors.append(
-                    cv2.imread(
-                        self.face_images[self.person_idx][self.image_idx]))
+                    cv2.imread(self.face_images[self.person_idx][
+                        self.image_idx]).astype(np.float))
                 positives.append(
-                    cv2.imread(
-                        self.face_images[self.person_idx][self.image_idx - 1]))
+                    cv2.imread(self.face_images[self.person_idx][self.image_idx
+                                                                 - 1]).astype(
+                                                                     np.float))
                 negative_idx = random.randint(
                     0,
                     len(self.face_images[self.person_idx - 1]) - 1)
                 negatives.append(
-                    cv2.imread(
-                        self.face_images[self.person_idx - 1][negative_idx]))
+                    cv2.imread(self.face_images[self.person_idx -
+                                                1][negative_idx]).astype(
+                                                    np.float))
                 batch_counter += 1
 
             self.image_idx += 1
