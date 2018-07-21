@@ -1,11 +1,11 @@
 """Capture images for registration
 """
-import logging
 import argparse
-
-import numpy as np
+import logging
 import os
 import sys
+
+import numpy as np
 
 import cv2
 from preprocess import INNER_EYES_AND_BOTTOM_LIP, CropAndAlign
