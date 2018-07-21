@@ -61,7 +61,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity', type=str, required=True)
     parser.add_argument('--face_predictor', type=str, required=True)
     parser.add_argument('--output_dim', type=int, default=72)
-    parser.add_argument('--show', type=bool, default=True)
+    parser.add_argument('--show', type=bool, action='store_false')
 
     if len(sys.argv) == 1:
         parser.print_help()
