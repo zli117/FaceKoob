@@ -28,6 +28,7 @@ def capture_images(out_path, identity, face_predictor_path, output_dim, show,
         _, image = camera.read()
         logger.debug(image.shape == (480, 640, 3))
         faces = aligner.find_all_bounding_boxes(image)
+        logger.info('Found %d faces' % len(faces))
         k = cv2.waitKey(30) & 0xff
         if k == ord('q'):  # press 'q' to quit
             break
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity', type=str, required=True)
     parser.add_argument('--face_predictor', type=str, required=True)
     parser.add_argument('--output_dim', type=int, default=72)
-    parser.add_argument('--show', type=bool, action='store_false')
+    parser.add_argument('--no_show', action='store_false')
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -69,4 +70,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     capture_images(args.output_dir, args.identity, args.face_predictor,
-                   args.output_dim, args.show, logger)
+                   args.output_dim, args.no_show, logger)
