@@ -4,6 +4,7 @@ import argparse
 import logging
 import socket
 import ssl
+import sys
 from threading import Thread
 
 import numpy as np
@@ -46,7 +47,7 @@ class EmbeddingServer:
                 break
             bounding_box = dlib.rectangle(0, 0, image.shape[1], image.shape[0])
             landmarks = self.predictor(image, bounding_box)
-            embedding = self.model(image, landmarks)
+            embedding = self.model.compute_face_descriptor(image, landmarks)
             self.logger.debug('Embedding: %s' % embedding)
             numpy_socket.send_numpy(embedding)
 
@@ -55,7 +56,8 @@ class EmbeddingServer:
         self.running = True
         while self.running:
             client_socket, client_addr = self.socket.accept()
-            self.logger.info('Connection from client: %s' % client_addr)
+            # self.logger.info('Connection from client: %s' % client_addr)
+            self.logger.info('Connection')
             ssl_socket = ssl.wrap_socket(
                 client_socket,
                 server_side=True,
@@ -64,3 +66,29 @@ class EmbeddingServer:
             thread = Thread(
                 target=self.handle_one_client, args=(ssl_socket, client_addr))
             thread.start()
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    parser = argparse.ArgumentParser('Server')
+    parser.add_argument('--predictor_path', type=str, required=True)
+    parser.add_argument('--model_path', type=str, required=True)
+    parser.add_argument('--host_name', type=str, default='')
+    parser.add_argument('--cert_path', type=str, required=True)
+    parser.add_argument('--key_path', type=str, required=True)
+    parser.add_argument('--port', type=int, default=12220)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+
+    args = parser.parse_args()
+    server = EmbeddingServer(
+        args.predictor_path,
+        args.model_path,
+        args.cert_path,
+        args.key_path,
+        logger, (72, 72, 3),
+        hostname=args.host_name,
+        port=args.port)
+    server.run()

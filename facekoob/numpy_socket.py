@@ -19,7 +19,7 @@ class NumpySocket:
         data_len = self.receive_helper(4)
         if data_len is None:
             return None
-        length = struct.unpack('>I', data_len)
+        length = struct.unpack('>I', data_len)[0]
         dump = self.receive_helper(length)
         if dump is None:
             return None
