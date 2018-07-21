@@ -56,7 +56,6 @@ class EmbeddingServer:
         self.running = True
         while self.running:
             client_socket, client_addr = self.socket.accept()
-            # self.logger.info('Connection from client: %s' % client_addr)
             self.logger.info('Connection')
             ssl_socket = ssl.wrap_socket(
                 client_socket,
