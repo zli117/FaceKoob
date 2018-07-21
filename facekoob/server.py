@@ -9,7 +9,6 @@ from threading import Thread
 import numpy as np
 
 import dlib
-
 from numpy_socket import NumpySocket
 
 
@@ -48,6 +47,7 @@ class EmbeddingServer:
             bounding_box = dlib.rectangle(0, 0, image.shape[1], image.shape[0])
             landmarks = self.predictor(image, bounding_box)
             embedding = self.model(image, landmarks)
+            self.logger.debug('Embedding: %s' % embedding)
             numpy_socket.send_numpy(embedding)
 
     def run(self):
