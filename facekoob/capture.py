@@ -25,6 +25,7 @@ def capture_images(out_path, identity, face_predictor_path, output_dim, logger):
         logger.warning('Identity %s already exists' % identity)
     while camera.isOpened():
         _, image = camera.read()
+        logger.debug(image.shape == (480, 640, 3))
         faces = aligner.find_all_bounding_boxes(image)
         k = cv2.waitKey(30) & 0xff
         if k == ord('q'):  # press 'q' to quit
