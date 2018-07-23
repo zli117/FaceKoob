@@ -47,12 +47,13 @@ class Client:
         camera = cv2.VideoCapture(0)
         camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1240)
         camera.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
+        camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         aligner = CropAndAlign(self.prediction_path, INNER_EYES_AND_BOTTOM_LIP,
                                logger)
         while camera.isOpened():
             _, image = camera.read()
             faces = aligner.align_all_faces(image, 72)
-            logger.info('Found %d faces' % len(faces))
+            logger.debug('Found %d faces' % len(faces))
             k = cv2.waitKey(1) & 0xff
             if k == ord('q'):
                 break
@@ -64,11 +65,11 @@ class Client:
                     distance = np.linalg.norm(embedding -
                                               self.identity_map[identity])
                     if distance < 0.8:
-                        self.logger.info('found %s' % identity)
+                        self.logger.debug('found %s' % identity)
                         found = True
                         break
                 if not found:
-                    self.logger.info('Not found')
+                    self.logger.debug('Not found')
 
 
 if __name__ == '__main__':
