@@ -73,19 +73,29 @@ class Client:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
     parser = argparse.ArgumentParser('Dataset preprocessor')
     parser.add_argument('--register_dir', type=str, required=True)
     parser.add_argument('--server_cert', type=str, required=True)
     parser.add_argument('--server_hostname', type=str, required=True)
     parser.add_argument('--server_port', type=int, required=True)
     parser.add_argument('--prediction_path', type=str, required=True)
+    parser.add_argument(
+        "-l",
+        "--log",
+        dest="logLevel",
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help="Set the logging level")
 
     if len(sys.argv) == 1:
         parser.print_help()
 
     args = parser.parse_args()
+
+    if args.logLevel:
+        logging.basicConfig(level=getattr(logging, args.logLevel))
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
     client = Client(args.register_dir, args.server_cert, args.server_hostname,
                     args.server_port, args.prediction_path, logger)
